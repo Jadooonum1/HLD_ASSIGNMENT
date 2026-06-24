@@ -1,0 +1,11 @@
+node_modules/
+
+# Generated/runtime data (regenerate with `npm run generate-data`)
+data/queries.csv
+data/primary-store.json
+data/wal.log
+
+# Logs / OS files
+*.log
+.DS_Store
+Thumbs.db

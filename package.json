@@ -1,0 +1,25 @@
+{
+  "name": "search-typeahead-system",
+  "version": "1.0.0",
+  "description": "A search typeahead system with distributed caching (consistent hashing), recency-aware trending, and batch writes.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "generate-data": "node scripts/generate-dataset.js",
+    "benchmark": "node scripts/benchmark.js"
+  },
+  "keywords": [
+    "typeahead",
+    "autocomplete",
+    "consistent-hashing",
+    "trie",
+    "caching",
+    "trending"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

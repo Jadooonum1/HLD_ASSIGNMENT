@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Premium Search Typeahead System</title>
+  <!-- Google Fonts for Outfit and JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="glass-bg"></div>
+
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <h1 class="brand-title">Parth Suggester</h1>
+      </div>
+      <div class="mode-selector" role="radiogroup" aria-label="Ranking logic mode">
+        <span class="mode-label">Ranking Mode:</span>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="mode" value="base" />
+            <span class="radio-custom"></span>
+            <span class="radio-text">Basic (Counts)</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="mode" value="recency" checked />
+            <span class="radio-custom"></span>
+            <span class="radio-text">Recency-Aware</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <!-- Left Column: Search & Visualizations -->
+    <section class="main-column">
+      
+      <!-- Search Input Card -->
+      <div class="dashboard-card search-card">
+        <div class="search-field-wrapper">
+          <div class="search-icon-inside">🔍</div>
+          <input
+            id="search-input"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Type a prefix (e.g. ip, java, how to, best)..."
+            aria-label="Search Prefix Input"
+            aria-autocomplete="list"
+            aria-controls="suggestions"
+          />
+          <button id="search-btn" class="glow-button" type="button">Execute Search</button>
+        </div>
+        <!-- Suggestion Dropdown List -->
+        <ul id="suggestions" class="custom-suggestions" role="listbox" hidden></ul>
+      </div>
+
+      <!-- Consistent Hash Ring Visualization -->
+      <div class="dashboard-card visualization-card">
+        <div class="card-header">
+          <h2 class="card-title">🌐 Consistent Hash Ring Visualization</h2>
+          <span class="card-badge">Live Map</span>
+        </div>
+        <p class="card-description">
+          Demonstrates request routing in a distributed cache. When you type, the prefix key is hashed to a 32-bit integer on a <code>[0, 2³² - 1]</code> ring and routed clockwise to the nearest cache shard node.
+        </p>
+        <div class="vis-container">
+          <div class="ring-svg-wrapper">
+            <svg id="hash-ring-svg" viewBox="0 0 320 320" width="100%" height="100%">
+              <defs>
+                <!-- Gradients for nodes -->
+                <radialGradient id="ring-glow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.15" />
+                  <stop offset="100%" stop-color="#00f2fe" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <!-- Outer Glow -->
+              <circle cx="160" cy="160" r="140" fill="url(#ring-glow)" />
+              <!-- Ring track -->
+              <circle cx="160" cy="160" r="120" class="ring-track" />
+              <!-- Scale Marks -->
+              <line x1="160" y1="35" x2="160" y2="45" class="ring-tick" />
+              <line x1="285" y1="160" x2="275" y2="160" class="ring-tick" />
+              <line x1="160" y1="285" x2="160" y2="275" class="ring-tick" />
+              <line x1="35" y1="160" x2="45" y2="160" class="ring-tick" />
+              
+              <!-- Shard nodes will be drawn dynamically by Javascript -->
+              <g id="svg-nodes-group"></g>
+              
+              <!-- Routing active pointer path -->
+              <g id="svg-active-routing" opacity="0">
+                <!-- Line from center to hash point -->
+                <line x1="160" y1="160" x2="160" y2="160" class="routing-radius" id="routing-line-radius" />
+                <!-- Key Hash point on ring -->
+                <circle cx="160" cy="160" r="6" class="routing-key-point" id="routing-key-dot" />
+                <!-- Clockwise Arc sweep indicator -->
+                <path d="" class="routing-arc" id="routing-arc-path" />
+              </g>
+            </svg>
+          </div>
+          <div class="ring-legend">
+            <div class="legend-title">Active Nodes</div>
+            <div id="ring-legend-list" class="legend-grid">
+              <!-- Dynamically populated legend -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Response Debug Card -->
+      <div id="result" class="dashboard-card result-card" hidden>
+        <div class="card-header">
+          <h2 class="card-title">📤 Search Event Log</h2>
+          <span class="card-badge success">Success</span>
+        </div>
+        <div class="code-block-wrapper">
+          <pre id="result-body"></pre>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Sidebar Metrics & Trending -->
+    <aside class="sidebar-column">
+      
+      <!-- Diagnostics Panel -->
+      <div class="dashboard-card diagnostics-card">
+        <div class="card-header">
+          <h2 class="card-title">🔍 Routing Diagnostics</h2>
+          <span class="card-badge info">API Level</span>
+        </div>
+        <div class="diagnostics-grid">
+          <div class="diag-item">
+            <span class="diag-label">Data Source</span>
+            <div class="diag-value-wrap">
+              <span id="dbg-source" class="badge-pill">—</span>
+            </div>
+          </div>
+          <div class="diag-item">
+            <span class="diag-label">Cache Status</span>
+            <div class="diag-value-wrap">
+              <span id="dbg-cache" class="badge-pill">—</span>
+            </div>
+          </div>
+          <div class="diag-item">
+            <span class="diag-label">Owning Node</span>
+            <div id="dbg-node" class="diag-value font-mono">—</div>
+          </div>
+          <div class="diag-item">
+            <span class="diag-label">Lookup Speed</span>
+            <div id="dbg-latency" class="diag-value font-mono highlight-text">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trending Section -->
+      <div class="dashboard-card trending-card">
+        <div class="card-header">
+          <h2 class="card-title">🔥 Popular Trends</h2>
+          <div class="pulse-indicator"></div>
+        </div>
+        <p class="card-subtitle">Decaying exponential scores updated in real time</p>
+        <ul id="trending-list" class="trend-list-items">
+          <li class="trend-placeholder">Waiting for activity... Submit some searches above!</li>
+        </ul>
+      </div>
+
+      <!-- Real-Time Metrics -->
+      <div class="dashboard-card metrics-card">
+        <div class="card-header">
+          <h2 class="card-title">📊 Analytics Console</h2>
+          <span class="live-pill">LIVE</span>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-row">
+            <span class="metric-name">Cache Hit Rate</span>
+            <div class="metric-value-container">
+              <span id="m-hitrate" class="metric-val font-mono">—</span>
+            </div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name">Suggest Latency (p95)</span>
+            <span id="m-p95" class="metric-val font-mono">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name">Suggest Latency (avg)</span>
+            <span id="m-avg" class="metric-val font-mono">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name">Store Reads (Cache Misses)</span>
+            <span id="m-reads" class="metric-val font-mono">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name">Store Writes (Flushed)</span>
+            <span id="m-writes" class="metric-val font-mono">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name">Incoming Searches</span>
+            <span id="m-searches" class="metric-val font-mono">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name">Batch Write Reduction</span>
+            <span id="m-reduction" class="metric-val font-mono highlight-green">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-name">Unique Indexes (Trie size)</span>
+            <span id="m-size" class="metric-val font-mono">—</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p>High-Level Design Autocomplete System • Designed for Academic Showcase</p>
+      <p class="footer-tech">Trie Index Branching • Consistent Hash Ring Routing • In-Memory Delta Batching • Decaying Time Scoring</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

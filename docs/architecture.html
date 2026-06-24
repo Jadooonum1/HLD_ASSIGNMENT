@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture — Search Typeahead System</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --accent:#2563eb; --accent2:#7c3aed;
+    --green:#16a34a; --orange:#ea580c; --border:#cbd5e1; --bg:#f8fafc;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);padding:32px;}
+  h1{font-size:22px;margin:0 0 4px;}
+  .sub{color:var(--muted);margin:0 0 28px;font-size:14px;}
+  .diagram{max-width:1000px;margin:0 auto;}
+  .lane{border:1px dashed var(--border);border-radius:14px;padding:18px;margin-bottom:18px;background:#fff;}
+  .lane-title{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:stretch;justify-content:center;}
+  .box{flex:1;min-width:200px;border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.06);}
+  .box h3{margin:0 0 6px;font-size:15px;}
+  .box p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45;}
+  .box code{background:#eef2ff;color:var(--accent);padding:1px 5px;border-radius:5px;font-size:11.5px;}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;}
+  .t-read{background:#dbeafe;color:#1d4ed8;}
+  .t-write{background:#fae8ff;color:#a21caf;}
+  .t-store{background:#dcfce7;color:#15803d;}
+  .t-client{background:#fff7ed;color:#c2410c;}
+  .arrow{display:flex;justify-content:center;align-items:center;color:var(--muted);font-size:26px;line-height:1;margin:-4px 0;}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:22px;font-size:12.5px;color:var(--muted);}
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .split{display:flex;gap:16px;align-items:stretch;}
+  .split>.box{flex:1;}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;}
+  .ring{border:2px solid var(--accent);}
+</style>
+</head>
+<body>
+<div class="diagram">
+  <h1>Search Typeahead System — Architecture</h1>
+  <p class="sub">Trie prefix index · distributed cache with consistent hashing · recency-aware trending · batched writes (buffer + flush)</p>
+
+  <!-- Client -->
+  <div class="lane">
+    <div class="lane-title">Client — Browser UI (public/)</div>
+    <div class="row">
+      <div class="box"><span class="tag t-client">read</span><h3>Typeahead box</h3><p>Debounced <code>GET /suggest?q=&amp;mode=</code> as the user types. Keyboard nav, loading/error states.</p></div>
+      <div class="box"><span class="tag t-write">write</span><h3>Search submit</h3><p>Enter / button / pick → <code>POST /search</code>. Shows the dummy response.</p></div>
+      <div class="box"><h3>Trending + metrics</h3><p><code>GET /trending</code> and <code>GET /metrics</code> panels refresh live.</p></div>
+    </div>
+  </div>
+
+  <div class="arrow">▼ &nbsp;&nbsp; HTTP &nbsp;&nbsp; ▼</div>
+
+  <!-- Server READ path -->
+  <div class="lane">
+    <div class="lane-title">Read path — GET /suggest (SuggestionService)</div>
+    <div class="row">
+      <div class="box"><span class="tag t-read">1 · cache</span><h3>Distributed Cache</h3><p>Prefix hashed onto the ring → owning node. <b>HIT</b> → return top-10 (~99.8% of reads). <b>MISS</b> → fall through.</p></div>
+      <div class="arrow">►</div>
+      <div class="box"><span class="tag t-store">2 · store read</span><h3>Primary Store · Trie</h3><p>Walk to the prefix node, collect completions. O(prefix length), no full scan.</p></div>
+      <div class="arrow">►</div>
+      <div class="box"><span class="tag t-read">3 · rank</span><h3>Scoring</h3><p><b>base</b>: by count.<br><b>recency</b>: <code>log10(count) + 3·decayedRecency</code>. Top-10, then cache it.</p></div>
+    </div>
+  </div>
+
+  <!-- Cache internals -->
+  <div class="lane ring">
+    <div class="lane-title">Distributed cache — consistent hashing</div>
+    <div class="row">
+      <div class="box"><h3>Hash Ring</h3><p>MD5(prefix)→uint32 on a circle. First node clockwise owns the key. ~150 virtual nodes/node → even spread (~25% each over 4 nodes). Adding/removing a node remaps only ~1/N keys.</p></div>
+      <div class="box"><h3>cache-node-0..3</h3><p>Each = in-memory map with <b>TTL (30s)</b> expiry + size cap (FIFO evict). <code>GET /cache/debug?prefix=</code> shows owner + hit/miss.</p></div>
+    </div>
+  </div>
+
+  <div class="arrow">▲ &nbsp; read &nbsp;&nbsp;|&nbsp;&nbsp; write &nbsp; ▼</div>
+
+  <!-- Server WRITE path -->
+  <div class="lane">
+    <div class="lane-title">Write path — POST /search</div>
+    <div class="row">
+      <div class="box"><span class="tag t-write">instant</span><h3>Recency Tracker</h3><p><code>record()</code> bumps a time-decayed counter → Trending updates immediately.</p></div>
+      <div class="arrow">►</div>
+      <div class="box"><span class="tag t-write">invalidate</span><h3>Cache invalidation</h3><p>Drop cached results for every prefix of the query, so the next suggest recomputes.</p></div>
+      <div class="arrow">►</div>
+      <div class="box"><span class="tag t-write">batch</span><h3>Batch Writer</h3><p>Buffer + aggregate duplicates in memory. Flush by size (500) or timer (2s) → ~99% fewer writes. (Crash-before-flush trade-off discussed in DESIGN.md.)</p></div>
+    </div>
+  </div>
+
+  <div class="arrow">▼ &nbsp; flush &nbsp; ▼</div>
+
+  <!-- Storage -->
+  <div class="lane">
+    <div class="lane-title">Storage — Primary data store (source of truth)</div>
+    <div class="split">
+      <div class="box"><span class="tag t-store">upsert</span><h3>counts Map + Trie</h3><p><code>applyDeltas()</code> upserts each distinct query once and updates the Trie index. Tracks read/write counters for the report.</p></div>
+      <div class="box"><span class="tag t-store">persist</span><h3>Snapshot</h3><p>Periodic atomic JSON snapshot (<code>data/primary-store.json</code>) — counts survive a restart. Loaded on boot if present, else the CSV.</p></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:#1d4ed8"></i> read path</span>
+    <span><i class="dot" style="background:#a21caf"></i> write path</span>
+    <span><i class="dot" style="background:#15803d"></i> primary store</span>
+    <span><i class="dot" style="background:#c2410c"></i> client</span>
+  </div>
+  <p class="note">Open in a browser and screenshot for the submission. Full rationale in DESIGN.md.</p>
+</div>
+</body>
+</html>

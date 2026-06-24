@@ -1,0 +1,799 @@
+/* ==========================================================================
+   Premium Dark Theme & Glassmorphism Design System
+   ========================================================================== */
+
+:root {
+  --bg-color: #080c14;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --accent: #00f2fe;
+  --accent-hover: #00d6e0;
+  --accent-rgb: 0, 242, 254;
+  --accent-alt: #4facfe;
+  --card-bg: rgba(13, 20, 35, 0.7);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(7, 11, 19, 0.6);
+  --input-focus-border: rgba(0, 242, 254, 0.5);
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --error: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --info: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.15);
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 15px rgba(0, 242, 254, 0.25);
+  
+  --font-sans: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
+  
+  /* Gradation interpolation space configuration as suggested by CSS guidelines */
+  --in-oklch: ;
+}
+
+@supports (linear-gradient(in oklch, white, black)) {
+  :root {
+    --in-oklch: in oklch;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* Background Glowing Accents */
+.glass-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(79, 172, 254, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Header Component
+   ========================================================================== */
+
+.app-header {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+  background-color: rgba(8, 12, 20, 0.85);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  font-size: 24px;
+  background: linear-gradient(135deg var(--in-oklch), var(--accent), var(--accent-alt));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 242, 254, 0.2));
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(to right var(--in-oklch), #ffffff, var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mode-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.radio-group {
+  display: flex;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+}
+
+.radio-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.radio-option input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.radio-custom {
+  display: none; /* Just using direct background fills on parent */
+}
+
+.radio-option:has(input:checked) {
+  background: linear-gradient(135deg var(--in-oklch), rgba(0, 242, 254, 0.15) 0%, rgba(79, 172, 254, 0.15) 100%);
+  color: var(--accent);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+.radio-option:hover {
+  color: #fff;
+}
+
+/* ==========================================================================
+   Dashboard Grid Layout
+   ========================================================================== */
+
+.app-layout {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Cards Design */
+.dashboard-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+}
+
+.dashboard-card:hover {
+  border-color: rgba(0, 242, 254, 0.15);
+  box-shadow: var(--shadow-md), 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.2px;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: -8px;
+  margin-bottom: 18px;
+}
+
+.card-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* Custom Badges */
+.card-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+.card-badge.success {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+.card-badge.info {
+  background-color: var(--info-bg);
+  color: var(--info);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* ==========================================================================
+   Search & Suggestions Components
+   ========================================================================== */
+
+.search-card {
+  padding: 16px;
+  z-index: 10;
+}
+
+.search-field-wrapper {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.search-icon-inside {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+#search-input {
+  flex: 1;
+  background-color: var(--input-bg);
+  border: 1px solid var(--card-border);
+  color: #fff;
+  padding: 16px 20px 16px 48px;
+  font-size: 16px;
+  font-family: var(--font-sans);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#search-input:focus {
+  border-color: var(--input-focus-border);
+  background-color: rgba(7, 11, 19, 0.85);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(0, 242, 254, 0.15);
+}
+
+/* Buttons */
+.glow-button {
+  background: linear-gradient(135deg var(--in-oklch), var(--accent) 0%, var(--accent-alt) 100%);
+  border: none;
+  outline: none;
+  color: #030712;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+  transition: transform 0.15s, opacity 0.2s, box-shadow 0.2s;
+}
+
+.glow-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5);
+}
+
+.glow-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 242, 254, 0.3);
+}
+
+/* Autocomplete Suggestion Dropdown */
+.custom-suggestions {
+  position: absolute;
+  top: 76px;
+  left: 16px;
+  right: 16px;
+  background: rgba(13, 20, 35, 0.95);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55), var(--shadow-glow);
+  z-index: 90;
+  list-style: none;
+  padding: 8px;
+  max-height: 350px;
+  overflow-y: auto;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.custom-suggestions li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  border: 1px solid transparent;
+}
+
+.custom-suggestions li:hover,
+.custom-suggestions li.active {
+  background: rgba(0, 242, 254, 0.08);
+  border-color: rgba(0, 242, 254, 0.15);
+  transform: translateX(2px);
+}
+
+.custom-suggestions .q {
+  font-size: 14.5px;
+  color: #fff;
+  font-weight: 400;
+}
+
+.custom-suggestions .q b {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.custom-suggestions .meta {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.custom-suggestions .info {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  text-align: center;
+  padding: 16px;
+  cursor: default;
+}
+.custom-suggestions .info:hover {
+  background: transparent;
+  transform: none;
+  border-color: transparent;
+}
+
+/* ==========================================================================
+   Consistent Hash Ring Visualization
+   ========================================================================== */
+
+.vis-container {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.ring-svg-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+/* SVG Tracks and Elements */
+.ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.ring-tick {
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 2;
+}
+
+.ring-node {
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+  transform-origin: center;
+}
+
+.ring-node-circle {
+  stroke-width: 2;
+}
+
+.ring-node-label {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.ring-node:hover {
+  filter: drop-shadow(0 0 6px var(--accent));
+}
+
+/* Routing animations */
+.routing-radius {
+  stroke: rgba(0, 242, 254, 0.3);
+  stroke-width: 1.5;
+  stroke-dasharray: 4, 3;
+}
+
+.routing-key-point {
+  fill: #fff;
+  stroke: var(--accent);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+
+.routing-arc {
+  fill: none;
+  stroke: var(--accent-alt);
+  stroke-width: 2;
+  stroke-dasharray: 2, 2;
+}
+
+/* Legend */
+.ring-legend {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+}
+
+.legend-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  font-family: var(--font-mono);
+}
+
+.legend-vnodes {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* ==========================================================================
+   Search Event Log Component
+   ========================================================================== */
+
+.code-block-wrapper {
+  background-color: rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid var(--card-border);
+  overflow-x: auto;
+}
+
+#result-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #38bdf8;
+  white-space: pre-wrap;
+}
+
+/* ==========================================================================
+   Diagnostics Panel Component
+   ========================================================================== */
+
+.diagnostics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.diag-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diag-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.diag-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.diag-value.highlight-text {
+  color: var(--accent);
+}
+
+.badge-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Diagnostics badges statuses */
+.badge-pill:has(text:contains("cache")) { color: var(--success); }
+.badge-pill.hit {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+.badge-pill.miss {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.badge-pill.store {
+  background: var(--info-bg);
+  color: var(--info);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+.badge-pill.empty {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Trending Panel Component
+   ========================================================================== */
+
+.trending-card {
+  overflow: hidden;
+}
+
+.pulse-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--error);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--error);
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+.trend-list-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-list-items li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  transition: background-color 0.2s, color 0.2s;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.trend-list-items li:last-child {
+  border-bottom: none;
+}
+
+.trend-list-items li:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--accent);
+}
+
+.trend-list-items .trend-placeholder {
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 12.5px;
+  padding: 16px 0;
+  cursor: default;
+}
+.trend-list-items .trend-placeholder:hover {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.trend-list-items .score {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(239, 68, 68, 0.07);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--error);
+}
+
+/* ==========================================================================
+   Analytics Console Component
+   ========================================================================== */
+
+.live-pill {
+  font-size: 9px;
+  background-color: var(--error-bg);
+  color: var(--error);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.metrics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 13.5px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.metric-row:last-child {
+  border-bottom: none;
+}
+
+.metric-name {
+  color: var(--text-secondary);
+}
+
+.metric-val {
+  font-weight: 550;
+  color: #fff;
+}
+
+.metric-val.highlight-green {
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes pulse-glow {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+    box-shadow: 0 0 4px var(--error);
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 0 0 10px var(--error);
+  }
+}
+
+/* ==========================================================================
+   Footers
+   ========================================================================== */
+
+.app-footer {
+  margin-top: 48px;
+  padding: 32px 24px;
+  border-top: 1px solid var(--card-border);
+  background-color: rgba(6, 10, 18, 0.6);
+  text-align: center;
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-footer p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.footer-tech {
+  font-size: 11px !important;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+  .vis-container {
+    grid-template-columns: 1fr;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 500px) {
+  .header-container {
+    justify-content: center;
+  }
+  .radio-group {
+    width: 100%;
+    justify-content: center;
+  }
+}
